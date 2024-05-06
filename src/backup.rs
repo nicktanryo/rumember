@@ -28,6 +28,7 @@ pub mod backup {
 
         let target_path = format!("{}/{}", target_directory, target_name);
 
+        check_backup_limit(&args, &target_directory);
         initiate_backup(&args.source_path, &target_path);
     }
 
@@ -89,5 +90,51 @@ pub mod backup {
 
         backup_directory.push_str(format!("/{}", directory.as_str()).as_str());
         backup_directory
+    }
+
+    fn check_backup_limit(args: &Args, target_directory: &str) {
+        let backup_directory = Path::new(target_directory);
+        if !backup_directory.exists() {
+            return;
+        }
+
+        let paths = fs::read_dir(target_directory).unwrap();
+        if paths.count() < args.max_count as usize {
+            return;
+        }
+
+        log::info!(
+            "Path contain more backups than limit {}, removing oldest backup",
+            args.max_count
+        );
+        let oldest_file = fs::read_dir(target_directory)
+            .unwrap()
+            .min_by_key(|path| path.as_ref().unwrap().file_name());
+        let oldest_file_path = format!(
+            "{}/{}",
+            target_directory,
+            oldest_file
+                .unwrap()
+                .unwrap()
+                .file_name()
+                .into_string()
+                .unwrap()
+                .as_str()
+        );
+
+        remove_backup(&oldest_file_path);
+    }
+
+    fn remove_backup(path: &str) {
+        if !Path::new(path).exists() {
+            log::warn!("Path {} is invalid, not removing backup", path);
+        }
+
+        log::info!("Removing backup in path {}", path);
+        std::process::Command::new("rm")
+            .arg("-rf")
+            .arg(path)
+            .spawn()
+            .expect("Something is wrong");
     }
 }

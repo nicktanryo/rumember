@@ -21,5 +21,8 @@ pub mod args {
 
         #[arg(short, long, help = "cache directory, default to system")]
         pub backup_path: Option<String>,
+
+        #[arg(short, long, help = "max backup count", default_value = "10")]
+        pub max_count: u32,
     }
 }
