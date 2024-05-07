@@ -24,5 +24,13 @@ pub mod args {
 
         #[arg(short, long, help = "max backup count", default_value = "10")]
         pub max_count: u32,
+
+        #[arg(
+            short,
+            long,
+            help = "allow notification on backup job trigger",
+            required = false
+        )]
+        pub allow_notification: bool,
     }
 }

@@ -1,5 +1,5 @@
 pub mod backup {
-    use crate::args::args::Args;
+    use crate::{args::args::Args, notification::notification};
     use std::{fs, path::Path};
 
     pub fn create_backup(args: &Args) {
@@ -30,10 +30,18 @@ pub mod backup {
 
         check_backup_limit(&args, &target_directory);
         initiate_backup(&args.source_path, &target_path);
+
+        if args.allow_notification {
+            notification::send_notification(
+                "Rumember Backup",
+                format!("Initiate backup for {}", &args.source_path).as_str(),
+            );
+        }
     }
 
     fn initiate_backup(source_path: &str, target_path: &str) {
         log::info!("Initiate backup from {} to {}", source_path, target_path);
+
         std::process::Command::new("cp")
             .arg("-a")
             .arg(source_path)
